@@ -1,6 +1,6 @@
 import docker
 
-client = docker.DockerClient(base_url="tcp://127.0.0.1:2375")
+client = docker.DockerClient(base_url="unix://var/run/docker.sock")
 
-for event in client.events(decode=True):
+for event in client.events(decode=True, filter={"event": "die"}):
     print(event)
