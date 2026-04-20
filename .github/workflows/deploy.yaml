@@ -1,0 +1,58 @@
+name: Deploy Python App
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Login no Registry do GitHub na VPS
+            echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Puxa a nova versão
+            sudo docker pull ghcr.io/${{ github.repository }}:latest
+
+            # Remove o container antigo se existir
+            sudo docker stop meu-app-python || true
+            sudo docker rm meu-app-python || true
+
+            # Roda o novo container
+            # Se for um app web (Flask/FastAPI), mude o -p 5000:5000
+            sudo docker run -d \
+            --name meu-app-python \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            ghcr.io/${{ github.repository }}:latest
