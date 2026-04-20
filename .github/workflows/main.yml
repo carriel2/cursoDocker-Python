@@ -27,7 +27,6 @@ jobs:
         with:
           context: .
           push: true
-          # Aqui usamos o Hash do commit e a tag latest
           tags: |
             ghcr.io/carriel2/cursodocker-python:${{ github.sha }}
             ghcr.io/carriel2/cursodocker-python:latest
