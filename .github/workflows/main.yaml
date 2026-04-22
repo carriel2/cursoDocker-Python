@@ -48,3 +48,6 @@ jobs:
 
             # 5. Limpa imagens antigas para não lotar o disco
             sudo docker image prune -f
+
+            echo "✅ DEPLOY DO APP PYTHON FINALIZADO COM SUCESSO!" | sudo wall
+            echo "Deploy finalizado em: $(date)" > ~/status_deploy.txt
