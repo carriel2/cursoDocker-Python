@@ -5,58 +5,46 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      # Novo passo: Copia os arquivos do repositório para a VM
+      - name: Copiar arquivos para a VM
+        uses: appleboy/scp-action@master
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "." # Copia tudo do repositório
+          target: "~/meu-projeto-docker" # Pasta destino dentro da sua VM
 
-      - name: Build and push image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/carriel2/cursodocker-python:${{ github.sha }}
-            ghcr.io/carriel2/cursodocker-python:latest
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Deploy
+      # Passo atualizado: Acessa a VM, faz o build e roda
+      - name: SSH, Build e Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Login no Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # 1. Navega até a pasta onde está o seu Dockerfile
+            # Usamos aspas por causa dos espaços no nome da pasta
+            cd ~/meu-projeto-docker/"Monitoramento - Python"
 
-            # Puxa a versão específica do commit que disparou a pipeline
-            sudo docker pull ghcr.io/carriel2/cursodocker-python:${{ github.sha }}
+            # 2. Faz o build da imagem localmente na VM
+            sudo docker build -t cursodocker-python:latest .
 
-            # Para e remove o container antigo
+            # 3. Para e remove o container antigo
             sudo docker stop meu-app-python || true
             sudo docker rm meu-app-python || true
 
-            # Roda o novo container com o Hash específico
+            # 4. Roda o novo container usando a imagem que acabamos de "buildar"
             sudo docker run -d \
               --name meu-app-python \
               -v /var/run/docker.sock:/var/run/docker.sock \
-              ghcr.io/carriel2/cursodocker-python:${{ github.sha }}
+              cursodocker-python:latest
 
-            # Limpa imagens antigas para não lotar o AlmaLinux
+            # 5. Limpa imagens antigas para não lotar o disco
             sudo docker image prune -f
