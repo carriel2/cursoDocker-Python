@@ -28,7 +28,7 @@ Dockerfile Otimizado: Uso de imagens Alpine e boas práticas de segurança (usu�
 Healthcheck: Monitoramento de saúde nativo do Docker.
 
 ### 📸 Demonstração do Monitoramento
-![Alerta no Discord](./screenshots/image.png)
+![Alerta no Discord](./Screenshots/image.png)
 
 Build Args: Passagem de variáveis de versão (VERSION) em tempo de build.
 
