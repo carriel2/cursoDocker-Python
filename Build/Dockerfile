@@ -3,7 +3,7 @@ FROM node:20-alpine
 LABEL maintainer="Pedro Carriel"
 
 HEALTHCHECK CMD \
-    curl --sf http://localhost:3000/ || exit 1
+    curl --sf http://localhost:5000/ || exit 1
 
 VOLUME [ "/var/nodeapp"]
 
