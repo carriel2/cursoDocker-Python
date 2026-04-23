@@ -16,7 +16,7 @@ WORKDIR /var/nodeapp
 
 COPY  . . 
 
-RUN chown nodepap:nodeapp app.js
+RUN chown nodeapp:nodeapp app.js
 
 
 ARG VERSION
