@@ -11,17 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Novo passo: Copia os arquivos do repositório para a VM
       - name: Copiar arquivos para a VM
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "." # Copia tudo do repositório
-          target: "~/meu-projeto-docker" # Pasta destino dentro da sua VM
+          source: "."
+          target: "~/meu-projeto-docker"
 
-      # Passo atualizado: Acessa a VM, faz o build e roda
       - name: SSH, Build e Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
