@@ -10,6 +10,8 @@ services:
       - PORT=5000
     ports:
       - "5055:5000"
+    networks:
+      - curso_network
   flaskapp:
     build:
       context: . 
@@ -17,5 +19,13 @@ services:
     container_name: flask-compose
     ports:
       - "5056:5000"
+    networks:
+      - curso_network
     depends_on:
       - nodeapp
+  
+networks:
+  curso_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
